@@ -69,8 +69,8 @@ commands:
           step-name: "Push jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/jahia"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
-  start_jahia:
-    description: "Start Jahia's image"
+  test_jahia:
+    description: "Testing Jahia's images"
     steps:
       - run:
           name: import db schema
@@ -86,14 +86,12 @@ commands:
               mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
       - run:
           name: start jahia entrypoint
+          background: True
           command: |
             set +o pipefail
             env
             free -m
             /entrypoint.sh
-  test_health:
-    description: "Testing if alive with healtcheck"
-    steps:
       - run:
           name: healtcheck test
           command: |
@@ -125,7 +123,6 @@ jobs:
           DB_PASS: jahia
           PROCESSING_SERVER: "true"
           MAX_RAM_PERCENTAGE: "70"
-          RESTORE_MODULE_STATES: "false"
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: jahia
@@ -133,8 +130,7 @@ jobs:
           MYSQL_USER: jahia
           MYSQL_PASSWORD: jahia
     steps:
-      - start_jahia
-      - test_health
+      - test_jahia
   b8000_default:
     executor: docker/docker
     steps:
