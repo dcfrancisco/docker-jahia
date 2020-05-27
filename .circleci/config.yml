@@ -77,6 +77,7 @@ commands:
           command: |
             set +o pipefail
             echo "simply wait 30s for mysql before import schema..."
+            sleep 30
             echo "now importing schema..."
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
               mysql -u $DB_USER -p$DB_PASS -h $DB_HOST -D $DB_NAME
