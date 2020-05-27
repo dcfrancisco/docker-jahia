@@ -79,8 +79,9 @@ commands:
             echo "simply wait 15s for mysql before import schema..."
             sleep 15
             echo "now importing schema..."
+            echo  mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
-              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -P $DB_PORT -D $DB_NAME
+              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
       - run:
           name: start jahia entrypoint
           command: |
