@@ -88,6 +88,7 @@ commands:
           name: start jahia entrypoint
           command: |
             set +o pipefail
+            env
             free -m
             /entrypoint.sh
       - run:
@@ -119,7 +120,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: jahia
           DB_HOST: localhost
           DB_PASS: jahia
-          PROCESSING_SERVER: true
+          PROCESSING_SERVER: "true"
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: jahia
