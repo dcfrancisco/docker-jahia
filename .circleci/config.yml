@@ -73,6 +73,9 @@ commands:
     description: "Testing Jahia's images"
     steps:
       - run:
+          name: start jahia entrypoint
+          command: /entrypoint.sh
+      - run:
           name: healtcheck test
           command: |-
             for i in {1..600}; do
@@ -87,6 +90,7 @@ commands:
               echo
               sleep 1
             done
+            exit 1
 
 
 jobs:
