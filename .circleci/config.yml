@@ -75,18 +75,15 @@ commands:
       - run:
           name: healtcheck test
           command: |-
-            jsonhealth=$(curl http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
-            exitcode=$?
-            if (test $exitcode -ne 0); then
-                echo "cURL's exit code: $exitcode"
-                exit 1
-            fi
-            echo $jsonhealth
-            if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
-                exit 0
-            else
-                exit 1
-            fi
+            for i in {1..600}; do
+              jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
+              exitcode=$?
+              echo $jsonhealth
+              if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
+                  exit 0
+              fi
+              sleep 1
+            done
 
 
 jobs:
@@ -95,7 +92,7 @@ jobs:
       - image: jahia/jahia:8.0.0.0
         environment:
           SUPER_USER_PASSWORD: superpwd
-          DB_HOST: 127.0.0.1
+          DB_HOST: localhost
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: rootpwd
