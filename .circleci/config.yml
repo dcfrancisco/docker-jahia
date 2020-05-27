@@ -83,7 +83,7 @@ commands:
                   exit 0
               fi
               echo "Not ready yet"
-              find /usr/local/tomcat/logs -name "jahia.log" --exec tail {} \;
+              find /usr/local/tomcat/logs -name "jahia.log" -exec tail {} \;
               echo
               sleep 1
             done
