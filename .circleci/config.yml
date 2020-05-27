@@ -69,8 +69,8 @@ commands:
           step-name: "Push jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/jahia"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
-  test_jahia:
-    description: "Testing Jahia's images"
+  start_jahia:
+    description: "Start Jahia's image"
     steps:
       - run:
           name: import db schema
@@ -85,26 +85,32 @@ commands:
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
               mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
       - run:
-          name: start jahia entrypoint and test healtcheck
+          name: start jahia entrypoint
           command: |
             set +o pipefail
             env
             free -m
-            /entrypoint.sh &
+            /entrypoint.sh
+  test_health:
+    description: "Testing if alive with healtcheck"
+    steps:
+      - run:
+          name: healtcheck test
+          command: |
+            set +o pipefail
             for i in {1..666}; do
-              echo "HEALTHCHECK iteration $i/666..."
+              echo "iteration $i/666..."
               jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
-                echo "HEALTHCHECK YEAH!"
-                exit 0
+                  exit 0
               fi
-              echo "HEALTHCHECK Not ready yet"
+              echo "Not ready yet"
               find /usr/local/tomcat/logs -name "jahia.log" -exec tail {} \;
               echo
               sleep 1
             done
-            echo "HEALTHCHECK you are a failure"
+            echo "you are a failure"
             exit 1
 
 
@@ -127,7 +133,8 @@ jobs:
           MYSQL_USER: jahia
           MYSQL_PASSWORD: jahia
     steps:
-      - test_jahia
+      - start_jahia
+      - test_health
   b8000_default:
     executor: docker/docker
     steps:
