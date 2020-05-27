@@ -74,12 +74,15 @@ commands:
     steps:
       - run:
           name: start jahia entrypoint
-          command: /entrypoint.sh
+          command: |
+            set +o pipefail
+            /entrypoint.sh
       - run:
           name: healtcheck test
-          command: |-
+          command: |
+            set +o pipefail
             for i in {1..600}; do
-              echo "iteration $i..."
+              echo "iteration $i/600..."
               jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD || exit 0)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
