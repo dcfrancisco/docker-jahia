@@ -98,7 +98,7 @@ commands:
             set +o pipefail
             for i in {1..666}; do
               echo "iteration $i/666..."
-              jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
+              jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD||exit 0)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
                   exit 0
