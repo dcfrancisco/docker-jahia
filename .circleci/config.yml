@@ -80,7 +80,7 @@ commands:
             sleep 15
             echo "now importing schema..."
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
-              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST -P $DB_PORT -D $DB_NAME
+              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -P $DB_PORT -D $DB_NAME
       - run:
           name: start jahia entrypoint
           command: |
