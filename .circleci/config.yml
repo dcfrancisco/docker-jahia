@@ -79,7 +79,7 @@ commands:
             echo "simply wait 15s for mysql before import schema..."
             sleep 15
             echo "setting max_allowed_packet..."
-              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -c "set global max_allowed_packet=134217728;" 
+              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -e "set global max_allowed_packet=134217728;" 
             echo "now importing schema..."
             echo  mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
