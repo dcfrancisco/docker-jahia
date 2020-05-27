@@ -122,6 +122,7 @@ jobs:
           DB_PASS: jahia
           PROCESSING_SERVER: "true"
           MAX_RAM_PERCENTAGE: "70"
+          RESTORE_MODULE_STATES: "false"
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: jahia
