@@ -88,16 +88,16 @@ commands:
 jobs:
   t8000:
     docker:
-      - image: jahia/jahia:8.0.0.0
-        environment:
-          SUPER_USER_PASSWORD: superpwd
-          DB_HOST: localhost
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: rootpwd
           MYSQL_DATABASE: jahia
           MYSQL_USER: jahia
           MYSQL_PASSWORD: jahia
+      - image: jahia/jahia:8.0.0.0
+        environment:
+          SUPER_USER_PASSWORD: superpwd
+          DB_HOST: localhost
     steps:
       - test_jahia
   b8000_default:
