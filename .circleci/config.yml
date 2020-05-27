@@ -151,15 +151,15 @@ workflows:
   version: 2
   build_all_jahia:
     jobs:
-      - b8000_default:
-          context: cloud-qa
-          filters:
-            branches:
-              only: master
       - t8000:
           filters:
             branches:
               only: master
+      #- b8000_default:
+      #    context: cloud-qa
+      #    filters:
+      #      branches:
+      #        only: master
       #- b8000_fs:
       #    context: cloud-qa
       #    filters:
