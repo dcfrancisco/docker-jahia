@@ -76,13 +76,15 @@ commands:
           name: healtcheck test
           command: |-
             for i in {1..600}; do
+              echo "iteration $i..."
               jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD || exit 0)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
                   exit 0
               fi
               echo "Not ready yet"
-              tail /usr/local/tomcat/logs/jahia.log || exit 0
+              find /usr/local/tomcat/logs -name "jahia.log" --exec tail {} \;
+              echo
               sleep 1
             done
 
