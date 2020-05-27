@@ -54,12 +54,56 @@ commands:
             --build-arg HEALTHCHECK_VER="<< parameters.healthcheck_ver >>"
             --no-cache
             '
+  push_jahia:
+    description: "Push Jahia's images"
+    parameters:
+      jver:
+        type: string
+      tag_suffix:
+        type: string
+    steps:
+      - setup_remote_docker
+      - checkout
+      - docker/check
       - docker/push:
           step-name: "Push jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/jahia"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
+  test_jahia:
+    description: "Testing Jahia's images"
+    steps:
+      - run:
+          name: healtcheck test
+          command: |-
+            jsonhealth=$(curl http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
+            exitcode=$?
+            if (test $exitcode -ne 0); then
+                echo "cURL's exit code: $exitcode"
+                exit 1
+            fi
+            echo $jsonhealth
+            if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
+                exit 0
+            else
+                exit 1
+            fi
+
 
 jobs:
+  t8000:
+    docker:
+      - image: jahia/jahia:8.0.0.0
+        environment:
+          SUPER_USER_PASSWORD: superpwd
+          DB_HOST: 127.0.0.1
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpwd
+          MYSQL_DATABASE: jahia
+          MYSQL_USER: jahia
+          MYSQL_PASSWORD: jahia
+    steps:
+      - test_jahia
   b8000_default:
     executor: docker/docker
     steps:
@@ -107,18 +151,23 @@ workflows:
   version: 2
   build_all_jahia:
     jobs:
-      - b8000_default:
-          context: cloud-qa
+      - t8000:
           filters:
             branches:
               only: master
-      - b8000_fs:
-          context: cloud-qa
-          filters:
-            branches:
-              only: master
-      - b7341_default:
-          context: cloud-qa
-          filters:
-            branches:
-              only: master
+      #- b8000_default:
+      #    context: cloud-qa
+      #    filters:
+      #      branches:
+      #        only: master
+      #- b8000_fs:
+      #    context: cloud-qa
+      #    filters:
+      #      branches:
+      #        only: master
+      #- b7341_default:
+      #    context: cloud-qa
+      #    filters:
+      #      branches:
+      #        only: master
+    
