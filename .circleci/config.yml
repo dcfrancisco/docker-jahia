@@ -116,6 +116,7 @@ jobs:
       - image: jahia/jahia:8.0.0.0
         environment:
           SUPER_USER_PASSWORD: jahia
+          MYSQL_ROOT_PASSWORD: jahia
           DB_HOST: localhost
           DB_PASS: jahia
           PROCESSING_SERVER: true
