@@ -105,6 +105,7 @@ jobs:
           SUPER_USER_PASSWORD: jahia
           DB_HOST: localhost
           DB_PASS: jahia
+          PROCESSING_SERVER: true
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: jahia
