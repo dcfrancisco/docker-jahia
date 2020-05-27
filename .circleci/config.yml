@@ -76,17 +76,7 @@ commands:
           name: import db schema
           command: |
             set +o pipefail
-            for n in {1..60}; do
-                echo -n "Testing network database access on host $DB_HOST (test $n/60)... "
-                [ $n -gt 60 ] && echo "We are doomed !" && exit 1
-                if (nc -w 1 -v $DB_HOST $DB_PORT ); then
-                    echo "SUCCESS"
-                    break
-                else
-                    echo "FAILED"
-                fi
-                sleep 1
-            done
+            echo "simply wait 30s for mysql before import schema..."
             echo "now importing schema..."
             cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
               mysql -u $DB_USER -p$DB_PASS -h $DB_HOST -D $DB_NAME
