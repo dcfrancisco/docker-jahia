@@ -76,7 +76,7 @@ commands:
           name: healtcheck test
           command: |-
             for i in {1..600}; do
-              jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -u root:$SUPER_USER_PASSWORD)
+              jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD || exit 0)
               exitcode=$?
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
