@@ -73,6 +73,25 @@ commands:
     description: "Testing Jahia's images"
     steps:
       - run:
+          name: import db schema
+          command: |
+            set +o pipefail
+            t = 60
+            for n in {1..$t}; do
+                echo -n "Testing network database access on host $DB_HOST (test $n/$t)... "
+                [ $n -gt 666 ] && echo "We are doomed !" && exit 1
+                if (nc -w 1 -v ${DB_HOST} ${DB_PORT} > /dev/null 2>&1 </dev/null); then
+                    echo "SUCCESS"
+                    break
+                else
+                    echo "FAILED"
+                fi
+                sleep 1
+            done
+            echo "now importing schema..."
+            cat /data/digital-factory-data/db/sql/schema/mysql/01-* | \
+              mysql -u $DB_USER -p$DB_PASS -h $DB_HOST -D $DB_NAME
+      - run:
           name: start jahia entrypoint
           command: |
             set +o pipefail
@@ -82,8 +101,9 @@ commands:
           name: healtcheck test
           command: |
             set +o pipefail
-            for i in {1..600}; do
-              echo "iteration $i/600..."
+            t = 666
+            for i in {1..$t}; do
+              echo "iteration $i/$t..."
               jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
@@ -94,6 +114,7 @@ commands:
               echo
               sleep 1
             done
+            echo "you are a failure"
             exit 1
 
 
