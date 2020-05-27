@@ -81,8 +81,8 @@ commands:
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
                   exit 0
               fi
-              echo "No ready yet"
-              tail /usr/local/tomcat/log/jahia.log
+              echo "Not ready yet"
+              tail /usr/local/tomcat/logs/jahia.log || exit 0
               sleep 1
             done
 
