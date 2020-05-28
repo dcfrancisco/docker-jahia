@@ -184,6 +184,7 @@ jobs:
         environment:
           <<: *environment_db
     steps:
+      - setup_remote_docker
       - test_jahia
   p8000:
     executor: docker/docker
