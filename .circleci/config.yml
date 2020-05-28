@@ -46,7 +46,7 @@ commands:
       - checkout
       - docker/check
       - docker/build:
-          step-name: "Build jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
+          step-name: "Build jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/<< parameters.repo >>"
           dockerfile: Dockerfile
@@ -84,7 +84,7 @@ commands:
               mysql -u $DB_USER -p$DB_PASS -h $DB_HOST --protocol=tcp -D $DB_NAME
       - run:
           name: start jahia entrypoint
-          background: True
+          background: true
           command: |
             set +o pipefail
             env
@@ -175,6 +175,9 @@ jobs:
   t8000:
     docker:
       - image: jahia/build2test:8.0.0.0
+        auth:
+          username: $DOCKER_LOGIN
+          password: $DOCKER_PASSWORD
         environment:
           <<: *environment_jahia
       - image: circleci/mysql:5.7
