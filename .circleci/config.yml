@@ -8,6 +8,9 @@ commands:
   build_jahia:
     description: "Build Jahia's images for jahiastic-jahia"
     parameters:
+      repo:
+        type: string
+        default: build2test
       jver:
         type: string
       base_url:
@@ -19,20 +22,25 @@ commands:
         default: "<< pipeline.git_branch >>"
       dbms_type:
         type: string
+        default: "mariadb"
       debug_tools:
         type: string
+        default: "false"
       ffmpeg:
         type: string
+        default: "false"
       libreoffice:
         type: string
+        default: "false"
       ds_in_db:
         type: string
+        default: "true"
       healthcheck_ver:
         type: string
         default: "2.0.2"
       latest:
         type: boolean
-        default: False
+        default: false
     steps:
       - setup_remote_docker
       - checkout
@@ -54,21 +62,11 @@ commands:
             --build-arg HEALTHCHECK_VER="<< parameters.healthcheck_ver >>"
             --no-cache
             '
-  push_jahia:
-    description: "Push Jahia's images"
-    parameters:
-      jver:
-        type: string
-      tag_suffix:
-        type: string
-    steps:
-      - setup_remote_docker
-      - checkout
-      - docker/check
       - docker/push:
-          step-name: "Push jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
-          image: "jahia/jahia"
+          step-name: "Push to test repo jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
+          image: "jahia/<< parameters.repo >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
+
   test_jahia:
     description: "Testing Jahia's images"
     steps:
@@ -93,7 +91,7 @@ commands:
             free -m
             /entrypoint.sh
       - run:
-          name: healtcheck test
+          name: healtcheck test and push
           command: |
             set +o pipefail
             for i in {1..666}; do
@@ -101,7 +99,7 @@ commands:
               jsonhealth=$(curl -m 1 http://localhost:8080/healthcheck -s -u root:$SUPER_USER_PASSWORD||exit 0)
               echo $jsonhealth
               if (test "$(echo $jsonhealth | jq -r '.status')" = "GREEN"); then
-                  exit 0
+                exit 0
               fi
               echo "Not ready yet"
               echo
@@ -110,48 +108,93 @@ commands:
             echo "you are a failure"
             exit 1
 
+  publish_image:
+    description: "Push tested image to public repo"
+    parameters:
+      repo:
+        type: string
+        default: jahia
+      repo_source:
+        type: string
+        default: build2test
+      jver:
+        type: string
+      tag_suffix:
+        type: string
+        default: "<< pipeline.git_branch >>"
+      latest:
+        type: boolean
+        default: false
+    steps:
+      - setup_remote_docker
+      - checkout
+      - docker/check
+      - docker/pull:
+          images: "jahia/<< parameters.repo_source >>:<< parameters.jver >><< parameters.tag_suffix >>"
+      - run:
+          name: "set final name to image"
+          command: |
+            docker tag \
+              jahia/<< parameters.repo_source >>:<< parameters.jver >><< parameters.tag_suffix >> \
+              jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>
+      - docker/push:
+          step-name: "Push to final repo jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
+          image: "jahia/<< parameters.repo >>"
+          tag: "<< parameters.jver >><< parameters.tag_suffix >>"
+
+#### common stuff
+filters: &filters
+  branches:
+    only: master
+
+environment_jahia: &environment_jahia
+  SUPER_USER_PASSWORD: jahia
+  MYSQL_ROOT_PASSWORD: jahia
+  DB_HOST: localhost
+  DB_PASS: jahia
+  PROCESSING_SERVER: "true"
+  MAX_RAM_PERCENTAGE: "70"
+  RESTORE_MODULE_STATES: "false"
+environment_db: &environment_db 
+  MYSQL_ROOT_PASSWORD: jahia
+  MYSQL_DATABASE: jahia
+  MYSQL_USER: jahia
+  MYSQL_PASSWORD: jahia
+
 
 jobs:
-  t8000:
-    docker:
-      - image: jahia/jahia:8.0.0.0
-        environment:
-          SUPER_USER_PASSWORD: jahia
-          MYSQL_ROOT_PASSWORD: jahia
-          DB_HOST: localhost
-          DB_PASS: jahia
-          PROCESSING_SERVER: "true"
-          MAX_RAM_PERCENTAGE: "70"
-          RESTORE_MODULE_STATES: "false"
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: jahia
-          MYSQL_DATABASE: jahia
-          MYSQL_USER: jahia
-          MYSQL_PASSWORD: jahia
-    steps:
-      - test_jahia
-  b8000_default:
+  b8000:
     executor: docker/docker
     steps:
       - build_jahia:
           jver: "8.0.0.0"
           tag_suffix: ""
-          latest: True
+          latest: true
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
-          dbms_type: "mariadb"
-          ds_in_db: "true"
-          debug_tools: "false"
-          ffmpeg: "false"
-          libreoffice: "false"
+  t8000:
+    docker:
+      - image: jahia/build2test:8.0.0.0
+        environment:
+          <<: *environment_jahia
+      - image: circleci/mysql:5.7
+        environment:
+          <<: *environment_db
+    steps:
+      - test_jahia
+  p8000:
+    executor: docker/docker
+    steps:
+      - publish_image:
+          jver: "8.0.0.0"
+          tag_suffix: ""
+          latest: true
   b8000_fs:
     executor: docker/docker
     steps:
       - build_jahia:
           jver: "8.0.0.0"
           tag_suffix: "_fs"
-          latest: False
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
           dbms_type: "mariadb"
@@ -178,10 +221,19 @@ workflows:
   version: 2
   build_all_jahia:
     jobs:
-      - t8000:
+      - b8000:
           filters:
-            branches:
-              only: master
+            <<: *filters
+      - t8000:
+          requires:
+            - b8000
+          filters:
+            <<: *filters
+      - p8000:
+          requires:
+            - t8000
+          filters:
+            <<: *filters
       #- b8000_default:
         #
       #    context: cloud-qa
