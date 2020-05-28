@@ -67,9 +67,20 @@ commands:
           step-name: "Push to test repo jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/<< parameters.repo >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
+      - slack/status:
+          failure_message: |
+            ':alert: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+          success_message: |
+            ':building_construction: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
   test_jahia:
     description: "Testing Jahia's images"
+    parameters:
+      jver:
+        type: string
+      tag_suffix:
+        type: string
+        default: "<< pipeline.git_branch >>"
     steps:
       - run:
           name: import db schema
@@ -108,6 +119,11 @@ commands:
             done
             echo "you are a failure"
             exit 1
+      - slack/status:
+          failure_message: |
+            ':alert: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+          success_message: |
+            ':heartpulse: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
   publish_image:
     description: "Push tested image to public repo"
@@ -155,6 +171,11 @@ commands:
                 step-name: "Pushing jahia/<< parameters.repo >>:latest"
                 image: "jahia/<< parameters.repo >>"
                 tag: "latest"
+      - slack/status:
+          failure_message: |
+            ':alert: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+          success_message: |
+            ':whale2: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
 ######################## common stuff
 filters: &filters
@@ -190,22 +211,20 @@ jobs:
           latest: true
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
-      - slack/status
   t8000:
     docker:
       - image: jahia/build2test:8.0.0.0
         <<: *environment_jahia
       - <<: *db_container
     steps:
-      - test_jahia
-      - slack/status
+      - test_jahia:
+          jver: "8.0.0.0"
   p8000:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
           latest: true
-      - slack/status
   ##########################################
   ############################### 8.0.0.0_fs
   b8000_fs:
@@ -216,22 +235,21 @@ jobs:
           tag_suffix: "_fs"
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
-      - slack/status
   t8000_fs:
     docker:
       - image: jahia/build2test:8.0.0.0_fs
         <<: *environment_jahia
       - <<: *db_container
     steps:
-      - test_jahia
-      - slack/status
+      - test_jahia:
+          jver: "8.0.0.0"
+          tag_suffix: "_fs"
   p8000_fs:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
           tag_suffix: "_fs"
-      - slack/status
   ##########################################
   ################################## 7.3.4.1
   b7341:
@@ -242,21 +260,19 @@ jobs:
           xml_suffix: ""
           base_url: "http://downloads.jahia.com/downloads/jahia/jahia7.3.4/Jahia-EnterpriseDistribution-7.3.4.1-r60321.4663.jar"
           healthcheck_ver: "1.0.11"
-      - slack/status
   t7341:
     docker:
       - image: jahia/build2test:7.3.4.1
         <<: *environment_jahia
       - <<: *db_container
     steps:
-      - test_jahia
-      - slack/status
+      - test_jahia:
+          jver: "7.3.4.1"
   p7341:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "7.3.4.1"
-      - slack/status
   ##########################################
 
 workflows:
@@ -273,6 +289,7 @@ workflows:
             - b8000
           filters:
             <<: *filters
+          context: cloud-qa
       - p8000:
           requires:
             - t8000
@@ -292,6 +309,7 @@ workflows:
             - b8000_fs
           filters:
             <<: *filters
+          context: cloud-qa
       - p8000_fs:
           requires:
             - t8000_fs
@@ -310,6 +328,7 @@ workflows:
             - b7341
           filters:
             <<: *filters
+          context: cloud-qa
       - p7341:
           requires:
             - t7341
