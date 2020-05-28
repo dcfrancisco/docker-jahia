@@ -259,12 +259,12 @@ workflows:
             - b8000
           filters:
             <<: *filters
-            #      - p8000:
-            #          requires:
-            #            - t8000
-            #          filters:
-            #            <<: *filters
-            #          context: cloud-qa
+      - p8000:
+          requires:
+            - t8000
+          filters:
+            <<: *filters
+          context: cloud-qa
 
       - b8000_fs:
           context: cloud-qa
@@ -276,12 +276,12 @@ workflows:
             - b8000_fs
           filters:
             <<: *filters
-            #      - p8000_fs:
-            #          requires:
-            #            - t8000_fs
-            #          filters:
-            #            <<: *filters
-            #          context: cloud-qa
+      - p8000_fs:
+          requires:
+            - t8000_fs
+          filters:
+            <<: *filters
+          context: cloud-qa
 
       - b7341:
           context: cloud-qa
@@ -293,9 +293,9 @@ workflows:
             - b7341
           filters:
             <<: *filters
-            #      - p7341:
-            #          requires:
-            #            - t7341
-            #          filters:
-            #            <<: *filters
-            #          context: cloud-qa
+      - p7341:
+          requires:
+            - t7341
+          filters:
+            <<: *filters
+          context: cloud-qa
