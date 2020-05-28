@@ -224,16 +224,19 @@ workflows:
       - b8000:
           filters:
             <<: *filters
+          context: cloud-qa
       - t8000:
           requires:
             - b8000
           filters:
             <<: *filters
+          context: cloud-qa
       - p8000:
           requires:
             - t8000
           filters:
             <<: *filters
+          context: cloud-qa
       #- b8000_default:
         #
       #    context: cloud-qa
