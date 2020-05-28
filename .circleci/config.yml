@@ -280,23 +280,23 @@ workflows:
   version: 2
   build_all_jahia:
     jobs:
-      ############# 8.0.0.0
-      - b8000:
-          filters:
-            <<: *filters
-          context: cloud-qa
-      - t8000:
-          requires:
-            - b8000
-          filters:
-            <<: *filters
-          context: cloud-qa
-      - p8000:
-          requires:
-            - t8000
-          filters:
-            <<: *filters
-          context: cloud-qa
+      #      ############# 8.0.0.0
+      #      - b8000:
+      #          filters:
+      #            <<: *filters
+      #          context: cloud-qa
+      #      - t8000:
+      #          requires:
+      #            - b8000
+      #          filters:
+      #            <<: *filters
+      #          context: cloud-qa
+      #      - p8000:
+      #          requires:
+      #            - t8000
+      #          filters:
+      #            <<: *filters
+      #          context: cloud-qa
       #####################
       ########## 8.0.0.0_fs
       ## build for k8s demo
@@ -318,22 +318,22 @@ workflows:
             <<: *filters
           context: cloud-qa
       #####################
-      ############# 7.3.4.1
-      - b7341:
-          context: cloud-qa
-          filters:
-            branches:
-              only: master
-      - t7341:
-          requires:
-            - b7341
-          filters:
-            <<: *filters
-          context: cloud-qa
-      - p7341:
-          requires:
-            - t7341
-          filters:
-            <<: *filters
-          context: cloud-qa
+      #      ############# 7.3.4.1
+      #      - b7341:
+      #          context: cloud-qa
+      #          filters:
+      #            branches:
+      #              only: master
+      #      - t7341:
+      #          requires:
+      #            - b7341
+      #          filters:
+      #            <<: *filters
+      #          context: cloud-qa
+      #      - p7341:
+      #          requires:
+      #            - t7341
+      #          filters:
+      #            <<: *filters
+      #    context: cloud-qa
       #####################
