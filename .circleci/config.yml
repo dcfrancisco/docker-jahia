@@ -3,6 +3,7 @@ version: 2.1
 
 orbs:
   docker: circleci/docker@1.0.1
+  slack: circleci/slack@3.4.2
 
 commands:
   build_jahia:
@@ -155,11 +156,10 @@ commands:
                 image: "jahia/<< parameters.repo >>"
                 tag: "latest"
 
-#### common stuff
+######################## common stuff
 filters: &filters
   branches:
     only: master
-
 environment_jahia: &environment_jahia
   environment:
     SUPER_USER_PASSWORD: jahia
@@ -178,9 +178,10 @@ environment_db: &environment_db
 db_container: &db_container
   - image: circleci/mysql:5.7
     <<: *environment_db
-
+####################################
 
 jobs:
+  ################################## 8.0.0.0
   b8000:
     executor: docker/docker
     steps:
@@ -189,6 +190,7 @@ jobs:
           latest: true
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
+      - slack/status
   t8000:
     docker:
       - image: jahia/build2test:8.0.0.0
@@ -196,13 +198,16 @@ jobs:
       - <<: *db_container
     steps:
       - test_jahia
+      - slack/status
   p8000:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
           latest: true
-
+      - slack/status
+  ##########################################
+  ############################### 8.0.0.0_fs
   b8000_fs:
     executor: docker/docker
     steps:
@@ -211,6 +216,7 @@ jobs:
           tag_suffix: "_fs"
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
+      - slack/status
   t8000_fs:
     docker:
       - image: jahia/build2test:8.0.0.0_fs
@@ -218,13 +224,16 @@ jobs:
       - <<: *db_container
     steps:
       - test_jahia
+      - slack/status
   p8000_fs:
     executor: docker/docker
     steps:
       - publish_image:
-          jver: "8.0.0.0_fs"
-          tag_suffix: ""
-
+          jver: "8.0.0.0"
+          tag_suffix: "_fs"
+      - slack/status
+  ##########################################
+  ################################## 7.3.4.1
   b7341:
     executor: docker/docker
     steps:
@@ -233,6 +242,7 @@ jobs:
           xml_suffix: ""
           base_url: "http://downloads.jahia.com/downloads/jahia/jahia7.3.4/Jahia-EnterpriseDistribution-7.3.4.1-r60321.4663.jar"
           healthcheck_ver: "1.0.11"
+      - slack/status
   t7341:
     docker:
       - image: jahia/build2test:7.3.4.1
@@ -240,16 +250,20 @@ jobs:
       - <<: *db_container
     steps:
       - test_jahia
+      - slack/status
   p7341:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "7.3.4.1"
+      - slack/status
+  ##########################################
 
 workflows:
   version: 2
   build_all_jahia:
     jobs:
+      ############# 8.0.0.0
       - b8000:
           filters:
             <<: *filters
@@ -265,7 +279,9 @@ workflows:
           filters:
             <<: *filters
           context: cloud-qa
-
+      #####################
+      ########## 8.0.0.0_fs
+      ## build for k8s demo
       - b8000_fs:
           context: cloud-qa
           filters:
@@ -282,7 +298,8 @@ workflows:
           filters:
             <<: *filters
           context: cloud-qa
-
+      #####################
+      ############# 7.3.4.1
       - b7341:
           context: cloud-qa
           filters:
@@ -299,3 +316,4 @@ workflows:
           filters:
             <<: *filters
           context: cloud-qa
+      #####################
