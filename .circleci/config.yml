@@ -233,6 +233,7 @@ jobs:
       - build_jahia:
           jver: "8.0.0.0"
           tag_suffix: "_fs"
+          ds_in_db: "false"
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   t8000_fs:
