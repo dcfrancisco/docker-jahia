@@ -141,6 +141,19 @@ commands:
           step-name: "Push to final repo jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "jahia/<< parameters.repo >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
+      - when:
+          condition: << parameters.latest >>
+          steps:
+            - run:
+                name: "set latest tag to image"
+                command: |
+                  docker tag \
+                    jahia/<< parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >> \
+                    jahia/<< parameters.repo >>:latest
+            - docker/push:
+                step-name: "Pushing jahia/<< parameters.repo >>:latest"
+                image: "jahia/<< parameters.repo >>"
+                tag: "latest"
 
 #### common stuff
 filters: &filters
@@ -148,18 +161,23 @@ filters: &filters
     only: master
 
 environment_jahia: &environment_jahia
-  SUPER_USER_PASSWORD: jahia
-  MYSQL_ROOT_PASSWORD: jahia
-  DB_HOST: localhost
-  DB_PASS: jahia
-  PROCESSING_SERVER: "true"
-  MAX_RAM_PERCENTAGE: "70"
-  RESTORE_MODULE_STATES: "false"
+  environment:
+    SUPER_USER_PASSWORD: jahia
+    MYSQL_ROOT_PASSWORD: jahia
+    DB_HOST: localhost
+    DB_PASS: jahia
+    PROCESSING_SERVER: "true"
+    MAX_RAM_PERCENTAGE: "70"
+    RESTORE_MODULE_STATES: "false"
 environment_db: &environment_db 
-  MYSQL_ROOT_PASSWORD: jahia
-  MYSQL_DATABASE: jahia
-  MYSQL_USER: jahia
-  MYSQL_PASSWORD: jahia
+  environment:
+    MYSQL_ROOT_PASSWORD: jahia
+    MYSQL_DATABASE: jahia
+    MYSQL_USER: jahia
+    MYSQL_PASSWORD: jahia
+db_container: &db_container
+  - image: circleci/mysql:5.7
+    <<: *environment_db
 
 
 jobs:
@@ -168,31 +186,23 @@ jobs:
     steps:
       - build_jahia:
           jver: "8.0.0.0"
-          tag_suffix: ""
           latest: true
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   t8000:
     docker:
       - image: jahia/build2test:8.0.0.0
-        auth:
-          username: $DOCKER_LOGIN
-          password: $DOCKER_PASSWORD
-        environment:
-          <<: *environment_jahia
-      - image: circleci/mysql:5.7
-        environment:
-          <<: *environment_db
+        <<: *environment_jahia
+      - <<: *db_container
     steps:
-      - setup_remote_docker
       - test_jahia
   p8000:
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
-          tag_suffix: ""
           latest: true
+
   b8000_fs:
     executor: docker/docker
     steps:
@@ -201,25 +211,40 @@ jobs:
           tag_suffix: "_fs"
           xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
-          dbms_type: "mariadb"
-          ds_in_db: "false"
-          debug_tools: "false"
-          ffmpeg: "false"
-          libreoffice: "false"
-  b7341_default:
+  t8000_fs:
+    docker:
+      - image: jahia/build2test:8.0.0.0_fs
+        <<: *environment_jahia
+      - <<: *db_container
+    steps:
+      - test_jahia
+  p8000_fs:
+    executor: docker/docker
+    steps:
+      - publish_image:
+          jver: "8.0.0.0_fs"
+          tag_suffix: ""
+
+  b7341:
     executor: docker/docker
     steps:
       - build_jahia:
           jver: "7.3.4.1"
-          tag_suffix: ""
           xml_suffix: ""
           base_url: "http://downloads.jahia.com/downloads/jahia/jahia7.3.4/Jahia-EnterpriseDistribution-7.3.4.1-r60321.4663.jar"
-          dbms_type: "mariadb"
-          ds_in_db: "true"
-          debug_tools: "false"
-          ffmpeg: "false"
-          libreoffice: "false"
           healthcheck_ver: "1.0.11"
+  t7341:
+    docker:
+      - image: jahia/build2test:7.3.4.1
+        <<: *environment_jahia
+      - <<: *db_container
+    steps:
+      - test_jahia
+  p7341:
+    executor: docker/docker
+    steps:
+      - publish_image:
+          jver: "7.3.4.1"
 
 workflows:
   version: 2
@@ -234,28 +259,43 @@ workflows:
             - b8000
           filters:
             <<: *filters
+            #      - p8000:
+            #          requires:
+            #            - t8000
+            #          filters:
+            #            <<: *filters
+            #          context: cloud-qa
+
+      - b8000_fs:
           context: cloud-qa
-      - p8000:
+          filters:
+            branches:
+              only: master
+      - t8000_fs:
           requires:
-            - t8000
+            - b8000_fs
           filters:
             <<: *filters
-          context: cloud-qa
-      #- b8000_default:
-        #
-      #    context: cloud-qa
-      #    filters:
-      #      branches:
-      #        only: master
-      #- b8000_fs:
-      #    context: cloud-qa
-      #    filters:
-      #      branches:
-      #        only: master
-      #- b7341_default:
-      #    context: cloud-qa
-      #    filters:
-      #      branches:
-      #        only: master
-    
+            #      - p8000_fs:
+            #          requires:
+            #            - t8000_fs
+            #          filters:
+            #            <<: *filters
+            #          context: cloud-qa
 
+      - b7341:
+          context: cloud-qa
+          filters:
+            branches:
+              only: master
+      - t7341:
+          requires:
+            - b7341
+          filters:
+            <<: *filters
+            #      - p7341:
+            #          requires:
+            #            - t7341
+            #          filters:
+            #            <<: *filters
+            #          context: cloud-qa
