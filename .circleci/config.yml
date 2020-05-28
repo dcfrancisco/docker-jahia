@@ -6,7 +6,7 @@ orbs:
 
 commands:
   build_jahia:
-    description: "Build Jahia's images for jahiastic-jahia"
+    description: "Build Jahia's images"
     parameters:
       repo:
         type: string
@@ -48,7 +48,7 @@ commands:
       - docker/build:
           step-name: "Build jahia/jahia:<< parameters.jver >><< parameters.tag_suffix >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
-          image: "jahia/jahia"
+          image: "jahia/<< parameters.repo >>"
           dockerfile: Dockerfile
           extra_build_args:
             '
