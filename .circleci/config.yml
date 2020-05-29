@@ -18,6 +18,7 @@ commands:
         type: string
       xml_suffix:
         type: string
+        default: "_v8"
       tag_suffix:
         type: string
         default: "<< pipeline.git_branch >>"
@@ -39,9 +40,6 @@ commands:
       healthcheck_ver:
         type: string
         default: "2.0.2"
-      latest:
-        type: boolean
-        default: false
     steps:
       - setup_remote_docker
       - checkout
@@ -212,8 +210,6 @@ jobs:
     steps:
       - build_jahia:
           jver: "8.0.0.0"
-          latest: true
-          xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   t8000:
     docker:
@@ -238,7 +234,6 @@ jobs:
           jver: "8.0.0.0"
           tag_suffix: "_fs"
           ds_in_db: "false"
-          xml_suffix: "_v8"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   t8000_fs:
     docker:
@@ -291,10 +286,10 @@ workflows:
           requires:
             - b8000
           <<: *job_options
-          #- p8000:
-          #    requires:
-          #      - t8000
-          #    <<: *job_options
+      - p8000:
+          requires:
+            - t8000
+          <<: *job_options
       #####################
       ########## 8.0.0.0_fs
       ## build for k8s demo
@@ -304,10 +299,10 @@ workflows:
           requires:
             - b8000_fs
           <<: *job_options
-          #- p8000_fs:
-          #    requires:
-          #      - t8000_fs
-          #    <<: *job_options
+      - p8000_fs:
+          requires:
+            - t8000_fs
+          <<: *job_options
       #####################
       ############# 7.3.4.1
       - b7341:
@@ -316,8 +311,8 @@ workflows:
           requires:
             - b7341
           <<: *job_options
-          #- p7341:
-          #    requires:
-          #      - t7341
-          #    <<: *job_options
+      - p7341:
+          requires:
+            - t7341
+          <<: *job_options
       #####################
