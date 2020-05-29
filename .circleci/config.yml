@@ -179,8 +179,12 @@ commands:
 
 ######################## common stuff
 filters: &filters
-  branches:
-    only: master
+  filters:
+    branches:
+      only: master
+job_options: &job_options
+  context: cloud-qa
+  <<: *filters
 environment_jahia: &environment_jahia
   environment:
     SUPER_USER_PASSWORD: jahia
@@ -280,60 +284,40 @@ workflows:
   version: 2
   build_all_jahia:
     jobs:
-      #      ############# 8.0.0.0
-      #      - b8000:
-      #          filters:
-      #            <<: *filters
-      #          context: cloud-qa
-      #      - t8000:
-      #          requires:
-      #            - b8000
-      #          filters:
-      #            <<: *filters
-      #          context: cloud-qa
-      #      - p8000:
-      #          requires:
-      #            - t8000
-      #          filters:
-      #            <<: *filters
-      #          context: cloud-qa
+      ############# 8.0.0.0
+      - b8000:
+          <<: *job_options
+      - t8000:
+          requires:
+            - b8000
+          <<: *job_options
+          #- p8000:
+          #    requires:
+          #      - t8000
+          #    <<: *job_options
       #####################
       ########## 8.0.0.0_fs
       ## build for k8s demo
       - b8000_fs:
-          context: cloud-qa
-          filters:
-            branches:
-              only: master
+          <<: *job_options
       - t8000_fs:
           requires:
             - b8000_fs
-          filters:
-            <<: *filters
-          context: cloud-qa
-      - p8000_fs:
-          requires:
-            - t8000_fs
-          filters:
-            <<: *filters
-          context: cloud-qa
+          <<: *job_options
+          #- p8000_fs:
+          #    requires:
+          #      - t8000_fs
+          #    <<: *job_options
       #####################
-      #      ############# 7.3.4.1
-      #      - b7341:
-      #          context: cloud-qa
-      #          filters:
-      #            branches:
-      #              only: master
-      #      - t7341:
-      #          requires:
-      #            - b7341
-      #          filters:
-      #            <<: *filters
-      #          context: cloud-qa
-      #      - p7341:
-      #          requires:
-      #            - t7341
-      #          filters:
-      #            <<: *filters
-      #    context: cloud-qa
+      ############# 7.3.4.1
+      - b7341:
+          <<: *job_options
+      - t7341:
+          requires:
+            - b7341
+          <<: *job_options
+          #- p7341:
+          #    requires:
+          #      - t7341
+          #    <<: *job_options
       #####################
