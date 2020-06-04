@@ -4,6 +4,7 @@ FROM tomcat:9.0
 MAINTAINER Jahia Devops team <paas@jahia.com>
 
 
+
 # Image components
 ARG BASE_URL="https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
 ARG DBMS_TYPE="mariadb"
