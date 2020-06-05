@@ -21,7 +21,7 @@ commands:
         default: "_v8"
       tag_suffix:
         type: string
-        default: "<< pipeline.git.branch >>"
+        default: ""
       dbms_type:
         type: string
         default: "mariadb"
@@ -78,7 +78,7 @@ commands:
         type: string
       tag_suffix:
         type: string
-        default: "<< pipeline.git.branch >>"
+        default: ""
     steps:
       - run:
           name: import db schema
@@ -143,7 +143,7 @@ commands:
         type: string
       tag_suffix:
         type: string
-        default: "<< pipeline.git.branch >>"
+        default: ""
       latest:
         type: boolean
         default: false
@@ -183,6 +183,12 @@ commands:
                 #      ':whale2: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
 ######################## common stuff
+job_def_param: &job_def_param
+  parameters:
+    suffixend:
+      type: string
+      # default: ""
+      default: "_<< pipeline.git.branch >>"
 filters: &filters
   filters:
     branches:
@@ -239,7 +245,7 @@ jobs:
     steps:
       - build_jahia:
           jver: "8.0.0.0"
-          tag_suffix: "_fs"
+          tag_suffix: "_fs<< parameters.branch >>"
           ds_in_db: "false"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   test_8000_fs:
@@ -283,14 +289,17 @@ jobs:
   ##########################################
   ################################## 7.3.4.1
   build_7341:
+    <<: *job_def_param
     executor: docker/docker
     steps:
       - build_jahia:
           jver: "7.3.4.1"
           xml_suffix: ""
+          tag_suffix: "<< parameters.suffixend >>"
           base_url: "http://downloads.jahia.com/downloads/jahia/jahia7.3.4/Jahia-EnterpriseDistribution-7.3.4.1-r60321.4663.jar"
           healthcheck_ver: "1.0.11"
   test_7341:
+    <<: *job_def_param
     docker:
       - image: jahia/build2test:7.3.4.1
         <<: *environment_jahia
@@ -298,12 +307,16 @@ jobs:
     steps:
       - test_jahia:
           jver: "7.3.4.1"
+          tag_suffix: "<< parameters.suffixend >>"
   publish_7341:
+    <<: *job_def_param
     executor: docker/docker
     steps:
       - publish_image:
           jver: "7.3.4.1"
+          tag_suffix: "<< parameters.suffixend >>"
   ##########################################
+
 
 workflows:
   version: 2
