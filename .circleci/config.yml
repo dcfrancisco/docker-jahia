@@ -65,11 +65,11 @@ commands:
           step-name: "Push to test repo << parameters.repo >>:<< parameters.jver >><< parameters.tag_suffix >>"
           image: "<< parameters.repo >>"
           tag: "<< parameters.jver >><< parameters.tag_suffix >>"
-          #- slack/status:
-          #    failure_message: |
-          #      ':alert: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
-          #    success_message: |
-          #      ':building_construction: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
+      - slack/status:
+          failure_message: |
+            ':alert: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+          success_message: |
+            ':building_construction: Building jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
   test_jahia:
     description: "Testing Jahia's images"
@@ -124,11 +124,11 @@ commands:
             done
             echo "you are a failure"
             exit 1
-            #- slack/status:
-            #    failure_message: |
-            #      ':alert: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
-            #    success_message: |
-            #      ':heartpulse: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
+       - slack/status:
+           failure_message: |
+             ':alert: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+           success_message: |
+             ':heartpulse: Testing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
   publish_image:
     description: "Push tested image to public repo"
@@ -176,19 +176,26 @@ commands:
                 step-name: "Pushing << parameters.repo >>:latest"
                 image: "<< parameters.repo >>"
                 tag: "latest"
-                #- slack/status:
-                #    failure_message: |
-                #      ':alert: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
-                #    success_message: |
-                #      ':whale2: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
+      - slack/status:
+          failure_message: |
+            ':alert: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> has failed !'
+          success_message: |
+            ':whale2: Publishing jahia:<< parameters.jver >><< parameters.tag_suffix >> successfully.'
 
 ######################## common stuff
 job_def_param: &job_def_param
   parameters:
+    #############################
+    #  /!\ /!\ /!\ /!\ /!\ /!\  #
+    #   Set something here if   #
+    # you do not want to update #
+    #      official images      #
+    #  /!\ /!\ /!\ /!\ /!\ /!\  #
+    #############################
     suffixend:
       type: string
-      # default: ""
-      default: "_<< pipeline.git.branch >>"
+      default: ""
+      # default: "_<< pipeline.git.branch >>"
 filters: &filters
   filters:
     branches:
@@ -301,7 +308,7 @@ jobs:
   test_7341:
     <<: *job_def_param
     docker:
-      - image: jahia/build2test:7.3.4.1
+      - image: jahia/build2test:7.3.4.1<< parameters.suffixend >>
         <<: *environment_jahia
       - <<: *db_container
     steps:
