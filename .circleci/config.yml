@@ -189,7 +189,8 @@ job_def_param: &job_def_param
     #  /!\ /!\ /!\ /!\ /!\ /!\  #
     #   Set something here if   #
     # you do not want to update #
-    #      official images      #
+    #      official images.     #
+    # Be aware of latest value! #
     #  /!\ /!\ /!\ /!\ /!\ /!\  #
     #############################
     suffixend:
@@ -245,7 +246,7 @@ jobs:
     steps:
       - publish_image:
           jver: "8.0.0.0"
-          latest: true
+          latest: true  # /!\ set to true if not for official build (see suffixend parameter)
   ##########################################
   ############################### 8.0.0.0_fs
   build_8000_fs:
@@ -333,41 +334,41 @@ workflows:
   build_all_jahia:
     jobs:
       ############# 8.0.0.0
-      #- build_8000:
-      #    <<: *job_options
-      #- test_8000:
-      #    requires:
-      #      - build_8000
-      #    <<: *job_options
-      #- publish_8000:
-      #    requires:
-      #      - test_8000
-      #    <<: *job_options
+      - build_8000:
+          <<: *job_options
+      - test_8000:
+          requires:
+            - build_8000
+          <<: *job_options
+      - publish_8000:
+          requires:
+            - test_8000
+          <<: *job_options
       #####################
       ########## 8.0.0.0_fs
       ## build for k8s demo
-      #- build_8000_fs:
-      #    <<: *job_options
-      #- test_8000_fs:
-      #    requires:
-      #      - build_8000_fs
-      #    <<: *job_options
-      #- publish_8000_fs:
-      #    requires:
-      #      - test_8000_fs
-      #    <<: *job_options
+      - build_8000_fs:
+          <<: *job_options
+      - test_8000_fs:
+          requires:
+            - build_8000_fs
+          <<: *job_options
+      - publish_8000_fs:
+          requires:
+            - test_8000_fs
+          <<: *job_options
       #####################
       ############# 7.3.5.0
-      #- build_7350:
-      #    <<: *job_options
-      #- test_7350:
-      #    requires:
-      #      - build_7350
-      #    <<: *job_options
-      #- publish_7350:
-      #    requires:
-      #      - test_7350
-      #    <<: *job_options
+      - build_7350:
+          <<: *job_options
+      - test_7350:
+          requires:
+            - build_7350
+          <<: *job_options
+      - publish_7350:
+          requires:
+            - test_7350
+          <<: *job_options
       #####################
       ############# 7.3.4.1
       - build_7341:
