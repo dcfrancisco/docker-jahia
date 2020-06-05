@@ -232,8 +232,10 @@ jobs:
     steps:
       - build_jahia:
           jver: "8.0.0.0"
+          tag_suffix: "<< parameters.suffixend >>"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   test_8000:
+    <<: *job_def_param
     docker:
       - image: jahia/build2test:8.0.0.0<< parameters.suffixend >>
         <<: *environment_jahia
@@ -241,12 +243,15 @@ jobs:
     steps:
       - test_jahia:
           jver: "8.0.0.0"
+          tag_suffix: "<< parameters.suffixend >>"
   publish_8000:
+    <<: *job_def_param
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
-          latest: true  # /!\ set to true if not for official build (see suffixend parameter)
+          tag_suffix: "<< parameters.suffixend >>"
+          latest: false  # /!\ set to true if not for official build (see suffixend parameter)
   ##########################################
   ############################### 8.0.0.0_fs
   build_8000_fs:
@@ -255,10 +260,11 @@ jobs:
     steps:
       - build_jahia:
           jver: "8.0.0.0"
-          tag_suffix: "_fs<< parameters.branch >>"
+          tag_suffix: "_fs<< parameters.suffixend >>"
           ds_in_db: "false"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia8.0.0/Jahia-EnterpriseDistribution-8.0.0.0-r60557.4681.jar"
   test_8000_fs:
+    <<: *job_def_param
     docker:
       - image: jahia/build2test:8.0.0.0_fs<< parameters.suffixend >>
         <<: *environment_jahia
@@ -266,13 +272,14 @@ jobs:
     steps:
       - test_jahia:
           jver: "8.0.0.0"
-          tag_suffix: "_fs"
+          tag_suffix: "_fs<< parameters.suffixend >>"
   publish_8000_fs:
+    <<: *job_def_param
     executor: docker/docker
     steps:
       - publish_image:
           jver: "8.0.0.0"
-          tag_suffix: "_fs"
+          tag_suffix: "_fs<< parameters.suffixend >>"
   ##########################################
   ################################## 7.3.5.0
   build_7350:
@@ -282,9 +289,11 @@ jobs:
       - build_jahia:
           jver: "7.3.5.0"
           xml_suffix: ""
+          tag_suffix: "<< parameters.suffixend >>"
           base_url: "https://downloads.jahia.com/downloads/jahia/jahia7.3.5/Jahia-EnterpriseDistribution-7.3.5.0-r60598.4688.jar"
           healthcheck_ver: "1.0.11"
   test_7350:
+    <<: *job_def_param
     docker:
       - image: jahia/build2test:7.3.5.0<< parameters.suffixend >>
         <<: *environment_jahia
@@ -292,11 +301,14 @@ jobs:
     steps:
       - test_jahia:
           jver: "7.3.5.0"
+          tag_suffix: "<< parameters.suffixend >>"
   publish_7350:
+    <<: *job_def_param
     executor: docker/docker
     steps:
       - publish_image:
           jver: "7.3.5.0"
+          tag_suffix: "<< parameters.suffixend >>"
   ##########################################
   ################################## 7.3.4.1
   build_7341:
